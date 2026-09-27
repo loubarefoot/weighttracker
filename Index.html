@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Gewichtstracker</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gewicht">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%2314171b%22/><text x=%2250%22 y=%2266%22 font-size=%2255%22 text-anchor=%22middle%22>⚖️</text></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#14171b;
+    --surface:#1d2126;
+    --surface-2:#252a30;
+    --border:#2d333b;
+    --text:#e9ebee;
+    --muted:#8b93a1;
+    --accent:#e0a458;
+    --accent-dim:#4a3c28;
+    --danger:#d9635f;
+    --danger-dim:#3a2323;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    height:100%;
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow-x:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+  body{
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    overscroll-behavior-y:contain;
+  }
+  .wrap{
+    max-width:520px;
+    margin:0 auto;
+    padding:20px 16px 40px;
+  }
+  h1{
+    font-size:1.4rem;
+    font-weight:650;
+    letter-spacing:-0.01em;
+    margin:4px 0 20px;
+    text-align:center;
+  }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:14px;
+  }
+  .current-label{
+    color:var(--muted);
+    font-size:.8rem;
+    margin:0 0 6px;
+    text-align:center;
+  }
+  .current-value{
+    font-size:2.6rem;
+    font-weight:700;
+    letter-spacing:-0.02em;
+    line-height:1;
+    text-align:center;
+  }
+  .current-value span{font-size:1.1rem;color:var(--muted);font-weight:500;}
+  .current-date{color:var(--muted);font-size:.82rem;margin-top:6px;text-align:center;}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  label{font-size:.72rem;color:var(--muted);text-align:center;}
+  input[type=number]{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:9px;
+    padding:10px 8px;
+    font-size:.92rem;
+    width:100%;
+    min-width:0;
+    text-align:center;
+    font-family:inherit;
+  }
+  input[type=date]{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:9px;
+    padding:10px 8px;
+    font-size:.92rem;
+    width:auto;
+    max-width:160px;
+    align-self:center;
+    text-align:center;
+    font-family:inherit;
+    color-scheme:dark;
+  }
+  input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  button{
+    font-family:inherit;
+    font-size:.95rem;
+    border-radius:9px;
+    border:1px solid transparent;
+    cursor:pointer;
+  }
+  .btn-primary{
+    background:var(--accent);
+    color:#1a1305;
+    font-weight:650;
+    padding:11px 16px;
+    width:100%;
+    margin-top:12px;
+    border:none;
+  }
+  .btn-primary:active{opacity:.85;}
+  .error{
+    color:var(--danger);
+    font-size:.82rem;
+    margin-top:8px;
+    min-height:1em;
+  }
+  .filters{display:flex;gap:6px;margin-bottom:12px;}
+  .filters button{
+    flex:1;
+    background:var(--surface-2);
+    color:var(--muted);
+    padding:7px 0;
+    font-size:.78rem;
+    border:1px solid var(--border);
+  }
+  .filters button.active{
+    background:var(--accent-dim);
+    color:var(--accent);
+    border-color:var(--accent);
+  }
+  .chart-box{height:180px;position:relative;}
+  .empty{
+    color:var(--muted);
+    font-size:.85rem;
+    text-align:center;
+    padding:20px 0;
+  }
+  .hist-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .hist-item:last-child{border-bottom:none;}
+  .hist-left{display:flex;flex-direction:column;}
+  .hist-weight{font-weight:600;font-size:1rem;}
+  .hist-date{color:var(--muted);font-size:.76rem;}
+  .del-btn{
+    background:transparent;
+    color:var(--danger);
+    border:1px solid var(--danger-dim);
+    padding:6px 10px;
+    font-size:.78rem;
+  }
+  .card-title{
+    font-size:.95rem;
+    font-weight:600;
+    margin:0 0 12px;
+    text-align:center;
+  }
+  .danger-zone{
+    background:transparent;
+    border:1px dashed var(--danger-dim);
+  }
+  .btn-danger{
+    background:var(--danger-dim);
+    color:var(--danger);
+    width:100%;
+    padding:10px;
+    font-weight:600;
+  }
+  .btn-danger.confirming{
+    background:var(--danger);
+    color:#2a0f0e;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Gewichtstracker</h1>
+
+  <div class="card">
+    <p class="current-label">Aktuelles Gewicht</p>
+    <div class="current-value" id="currentValue">– <span>kg</span></div>
+    <p class="current-date" id="currentDate">Noch kein Eintrag</p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Eintrag hinzufügen</p>
+    <div class="field">
+      <label for="dateInput">Datum</label>
+      <input type="date" id="dateInput">
+    </div>
+    <div class="field" style="margin-top:10px;">
+      <label for="weightInput">Gewicht (kg)</label>
+      <input type="number" id="weightInput" step="0.1" placeholder="z. B. 78.4" inputmode="decimal">
+    </div>
+    <button class="btn-primary" id="saveBtn">Speichern</button>
+    <p class="error" id="errorMsg"></p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Verlauf</p>
+    <div class="filters" id="filters">
+      <button data-range="7" class="active">7 Tage</button>
+      <button data-range="14">14 Tage</button>
+      <button data-range="30">30 Tage</button>
+      <button data-range="365">365 Tage</button>
+    </div>
+    <div class="chart-box"><canvas id="chart"></canvas></div>
+    <p class="empty" id="chartEmpty" style="display:none;">Noch keine Daten für diesen Zeitraum.</p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Historie</p>
+    <div id="historyList"></div>
+    <p class="empty" id="histEmpty" style="display:none;">Noch keine Einträge vorhanden.</p>
+  </div>
+
+  <div class="card danger-zone">
+    <button class="btn-danger" id="clearAllBtn">Alle Daten löschen</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'weightEntries';
+  let entries = [];
+  let activeRange = 7;
+  let chart = null;
+  let clearConfirming = false;
+  let clearTimer = null;
+
+  function loadEntries(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      entries = raw ? JSON.parse(raw) : [];
+      if(!Array.isArray(entries)) entries = [];
+    }catch(e){
+      entries = [];
+    }
+    entries.sort((a,b)=> a.date.localeCompare(b.date));
+  }
+
+  function saveEntries(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }catch(e){
+      showError('Speichern fehlgeschlagen (Speicher voll oder blockiert).');
+    }
+  }
+
+  function showError(msg){
+    document.getElementById('errorMsg').textContent = msg;
+  }
+
+  function todayStr(){
+    const d = new Date();
+    return d.toISOString().slice(0,10);
+  }
+
+  function fmtDate(iso){
+    const [y,m,d] = iso.split('-');
+    return d+'.'+m+'.'+y;
+  }
+
+  function renderCurrent(){
+    const el = document.getElementById('currentValue');
+    const dateEl = document.getElementById('currentDate');
+    if(entries.length === 0){
+      el.innerHTML = '– <span>kg</span>';
+      dateEl.textContent = 'Noch kein Eintrag';
+      return;
+    }
+    const last = entries[entries.length-1];
+    el.innerHTML = last.weight.toFixed(1) + ' <span>kg</span>';
+    dateEl.textContent = fmtDate(last.date);
+  }
+
+  function renderHistory(){
+    const list = document.getElementById('historyList');
+    const emptyEl = document.getElementById('histEmpty');
+    list.innerHTML = '';
+    if(entries.length === 0){
+      emptyEl.style.display = 'block';
+      return;
+    }
+    emptyEl.style.display = 'none';
+    const reversed = [...entries].reverse();
+    reversed.forEach(e=>{
+      const row = document.createElement('div');
+      row.className = 'hist-item';
+      row.innerHTML = `
+        <div class="hist-left">
+          <span class="hist-weight">${e.weight.toFixed(1)} kg</span>
+          <span class="hist-date">${fmtDate(e.date)}</span>
+        </div>
+        <button class="del-btn" data-date="${e.date}">Löschen</button>
+      `;
+      list.appendChild(row);
+    });
+    list.querySelectorAll('.del-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        entries = entries.filter(e=> e.date !== btn.dataset.date);
+        saveEntries();
+        renderAll();
+      });
+    });
+  }
+
+  function renderChart(){
+    const emptyEl = document.getElementById('chartEmpty');
+    const canvas = document.getElementById('chart');
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - (activeRange - 1));
+    const cutoffStr = cutoff.toISOString().slice(0,10);
+    const filtered = entries.filter(e => e.date >= cutoffStr);
+
+    if(filtered.length === 0){
+      canvas.style.display = 'none';
+      emptyEl.style.display = 'block';
+      if(chart){ chart.destroy(); chart = null; }
+      return;
+    }
+    canvas.style.display = 'block';
+    emptyEl.style.display = 'none';
+
+    const labels = filtered.map(e=> fmtDate(e.date));
+    const data = filtered.map(e=> e.weight);
+
+    if(chart) chart.destroy();
+    chart = new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          borderColor: '#e0a458',
+          backgroundColor: 'rgba(224,164,88,0.12)',
+          borderWidth: 2,
+          pointRadius: filtered.length > 40 ? 0 : 3,
+          pointBackgroundColor: '#e0a458',
+          tension: 0.25,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color:'#8b93a1', maxTicksLimit:6, font:{size:10} }, grid:{ color:'#2d333b' } },
+          y: { ticks: { color:'#8b93a1', font:{size:10} }, grid:{ color:'#2d333b' } }
+        }
+      }
+    });
+  }
+
+  function renderAll(){
+    renderCurrent();
+    renderHistory();
+    renderChart();
+  }
+
+  document.getElementById('filters').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-range]');
+    if(!btn) return;
+    document.querySelectorAll('#filters button').forEach(b=> b.classList.remove('active'));
+    btn.classList.add('active');
+    activeRange = parseInt(btn.dataset.range, 10);
+    renderChart();
+  });
+
+  document.getElementById('saveBtn').addEventListener('click', ()=>{
+    showError('');
+    const dateVal = document.getElementById('dateInput').value;
+    const weightVal = document.getElementById('weightInput').value;
+
+    if(!dateVal){
+      showError('Bitte ein Datum wählen.');
+      return;
+    }
+    if(weightVal === '' || weightVal === null){
+      showError('Bitte ein Gewicht eingeben.');
+      return;
+    }
+    const weightNum = parseFloat(weightVal);
+    if(isNaN(weightNum) || weightNum < 20 || weightNum > 400){
+      showError('Bitte ein plausibles Gewicht eingeben (20–400 kg).');
+      return;
+    }
+
+    const idx = entries.findIndex(e=> e.date === dateVal);
+    if(idx >= 0){
+      entries[idx].weight = weightNum;
+    } else {
+      entries.push({ date: dateVal, weight: weightNum });
+    }
+    entries.sort((a,b)=> a.date.localeCompare(b.date));
+    saveEntries();
+    document.getElementById('weightInput').value = '';
+    renderAll();
+  });
+
+  const clearBtn = document.getElementById('clearAllBtn');
+  clearBtn.addEventListener('click', ()=>{
+    if(!clearConfirming){
+      clearConfirming = true;
+      clearBtn.textContent = 'Wirklich ALLE Daten löschen?';
+      clearBtn.classList.add('confirming');
+      clearTimer = window.setTimeout(()=>{
+        clearConfirming = false;
+        clearBtn.textContent = 'Alle Daten löschen';
+        clearBtn.classList.remove('confirming');
+      }, 4000);
+    } else {
+      if(clearTimer){ window.clearTimeout(clearTimer); clearTimer = null; }
+      entries = [];
+      saveEntries();
+      clearConfirming = false;
+      clearBtn.textContent = 'Alle Daten löschen';
+      clearBtn.classList.remove('confirming');
+      renderAll();
+    }
+  });
+
+  document.getElementById('dateInput').value = todayStr();
+  document.getElementById('dateInput').max = todayStr();
+
+  loadEntries();
+  renderAll();
+})();
+</script>
+</body>
+</html>
