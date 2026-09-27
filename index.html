@@ -33,6 +33,13 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     overflow-x:hidden;
     -webkit-tap-highlight-color:transparent;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+  }
+  html::-webkit-scrollbar,body::-webkit-scrollbar{
+    display:none;
+    width:0;
+    background:transparent;
   }
   body{
     padding-top:env(safe-area-inset-top,0px);
