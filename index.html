@@ -196,6 +196,20 @@
     background:var(--danger);
     color:#2a0f0e;
   }
+  .btn-secondary{
+    background:var(--surface-2);
+    color:var(--text);
+    border:1px solid var(--border);
+    width:100%;
+    padding:10px;
+    font-weight:600;
+  }
+  .hint{
+    color:var(--muted);
+    font-size:.76rem;
+    line-height:1.4;
+    margin:10px 0 0;
+  }
 </style>
 </head>
 <body>
@@ -239,6 +253,15 @@
     <p class="card-title">Historie</p>
     <div id="historyList"></div>
     <p class="empty" id="histEmpty" style="display:none;">Noch keine Einträge vorhanden.</p>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Backup</p>
+    <button class="btn-secondary" id="exportBtn">Daten exportieren</button>
+    <button class="btn-secondary" id="importBtn" style="margin-top:10px;">Backup importieren</button>
+    <input type="file" id="importFile" accept="application/json" style="display:none;">
+    <p class="hint">Export speichert eine Datei mit all deinen Einträgen (z. B. in "Dateien" oder iCloud Drive). Bei einem neuen Handy: diese Datei dort öffnen/speichern und hier über "Backup importieren" wieder einlesen.</p>
+    <p class="error" id="backupMsg"></p>
   </div>
 
   <div class="card danger-zone">
@@ -447,6 +470,63 @@
       clearBtn.classList.remove('confirming');
       renderAll();
     }
+  });
+
+  function showBackupMsg(msg, isError){
+    const el = document.getElementById('backupMsg');
+    el.textContent = msg;
+    el.style.color = isError ? 'var(--danger)' : 'var(--accent)';
+  }
+
+  document.getElementById('exportBtn').addEventListener('click', ()=>{
+    try{
+      const payload = JSON.stringify({ app:'gewichtstracker', exportedAt: new Date().toISOString(), entries }, null, 2);
+      const blob = new Blob([payload], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const stamp = todayStr();
+      a.href = url;
+      a.download = `gewichtstracker-backup-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(()=> URL.revokeObjectURL(url), 2000);
+      showBackupMsg('Export gestartet – Datei sichern (z. B. in "Dateien" oder iCloud Drive).', false);
+    }catch(e){
+      showBackupMsg('Export fehlgeschlagen.', true);
+    }
+  });
+
+  document.getElementById('importBtn').addEventListener('click', ()=>{
+    document.getElementById('importFile').click();
+  });
+
+  document.getElementById('importFile').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const data = JSON.parse(reader.result);
+        const incoming = Array.isArray(data) ? data : data.entries;
+        if(!Array.isArray(incoming)) throw new Error('format');
+        let added = 0, updated = 0;
+        incoming.forEach(item=>{
+          if(!item || typeof item.date !== 'string' || typeof item.weight !== 'number') return;
+          const idx = entries.findIndex(en=> en.date === item.date);
+          if(idx >= 0){ entries[idx].weight = item.weight; updated++; }
+          else { entries.push({ date:item.date, weight:item.weight }); added++; }
+        });
+        entries.sort((a,b)=> a.date.localeCompare(b.date));
+        saveEntries();
+        renderAll();
+        showBackupMsg(`Import fertig: ${added} neu, ${updated} aktualisiert.`, false);
+      }catch(err){
+        showBackupMsg('Diese Datei sieht nicht wie ein gültiges Backup aus.', true);
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
   });
 
   document.getElementById('dateInput').value = todayStr();
