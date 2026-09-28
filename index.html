@@ -83,7 +83,7 @@
     text-align:center;
   }
   .current-value span{font-size:1.1rem;color:var(--muted);font-weight:500;}
-  .current-date{color:var(--muted);font-size:.82rem;margin-top:6px;text-align:center;}
+  .current-date{color:var(--muted);font-size:.82rem;margin:6px 0 0;text-align:center;}
   .field{display:flex;flex-direction:column;gap:5px;}
   label{font-size:.72rem;color:var(--muted);text-align:center;}
   input[type=number]{
@@ -133,9 +133,9 @@
   .error{
     color:var(--danger);
     font-size:.82rem;
-    margin-top:8px;
-    min-height:1em;
+    margin:8px 0 0;
   }
+  .error:empty{display:none;}
   .filters{display:flex;gap:6px;margin-bottom:12px;}
   .filters button{
     flex:1;
@@ -156,6 +156,7 @@
     font-size:.85rem;
     text-align:center;
     padding:20px 0;
+    margin:0;
   }
   .hist-item{
     display:flex;
@@ -260,7 +261,7 @@
     <button class="btn-secondary" id="exportBtn">Daten exportieren</button>
     <button class="btn-secondary" id="importBtn" style="margin-top:10px;">Backup importieren</button>
     <input type="file" id="importFile" accept="application/json" style="display:none;">
-    <p class="hint">Export speichert eine Datei mit all deinen Einträgen (z. B. in "Dateien" oder iCloud Drive). Bei einem neuen Handy: diese Datei dort öffnen/speichern und hier über "Backup importieren" wieder einlesen.</p>
+    <p class="hint">Export speichert alle Einträge als Datei, Import liest sie wieder ein.</p>
     <p class="error" id="backupMsg"></p>
   </div>
 
@@ -309,7 +310,12 @@
 
   function fmtDate(iso){
     const [y,m,d] = iso.split('-');
-    return d+'.'+m+'.'+y;
+    return d+'.'+m+'.'+y.slice(2);
+  }
+
+  function fmtShort(iso){
+    const [y,m,d] = iso.split('-');
+    return d+'.'+m+'.';
   }
 
   function renderCurrent(){
@@ -373,8 +379,15 @@
     canvas.style.display = 'block';
     emptyEl.style.display = 'none';
 
-    const labels = filtered.map(e=> fmtDate(e.date));
+    const labels = filtered.map(e=> fmtShort(e.date));
     const data = filtered.map(e=> e.weight);
+
+    let yMin = Math.floor(Math.min(...data) - 0.5);
+    let yMax = Math.ceil(Math.max(...data) + 0.5);
+    while(yMax - yMin < 3){
+      if((yMax - yMin) % 2 === 1) yMax++; else yMin--;
+    }
+    const yStep = (yMax - yMin) <= 10 ? 1 : undefined;
 
     if(chart) chart.destroy();
     chart = new Chart(canvas.getContext('2d'), {
@@ -398,7 +411,7 @@
         plugins: { legend: { display: false } },
         scales: {
           x: { ticks: { color:'#8b93a1', maxTicksLimit:6, font:{size:10} }, grid:{ color:'#2d333b' } },
-          y: { ticks: { color:'#8b93a1', font:{size:10} }, grid:{ color:'#2d333b' } }
+          y: { min:yMin, max:yMax, ticks: { stepSize:yStep, precision:0, color:'#8b93a1', font:{size:10} }, grid:{ color:'#2d333b' } }
         }
       }
     });
