@@ -415,6 +415,7 @@
     showMsg('errorMsg','',true);
     const dateVal = $('dateInput').value, weightVal = $('weightInput').value;
     if(!dateVal){ showMsg('errorMsg','Bitte ein Datum wählen.',true); return; }
+    if(dateVal > todayStr()){ showMsg('errorMsg','Ein zukünftiges Datum ist nicht möglich.',true); return; }
     if(weightVal === ''){ showMsg('errorMsg','Bitte ein Gewicht eingeben.',true); return; }
     const w = parseFloat(weightVal);
     if(isNaN(w) || w < 20 || w > 400){ showMsg('errorMsg','Bitte ein plausibles Gewicht eingeben (20–400 kg).',true); return; }
