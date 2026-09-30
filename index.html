@@ -7,37 +7,128 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="App">
 <title>App</title>
+
 <style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;height:100%;background:#ff0000}
-body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;color:#000}
-main{padding:20px;padding-bottom:calc(80px + env(safe-area-inset-bottom))}
-.page{display:none}
-.page.active{display:block}
-h1{font-size:1.4rem;margin:0 0 20px}
-label{display:block;margin-bottom:6px;font-size:.9rem}
-input[type=number]{display:block;width:100%;padding:10px;font-size:1rem;border:1px solid #ccc;border-radius:6px;margin-bottom:16px;background:#fff;color:#000;-webkit-appearance:none;appearance:none}
-.result{font-size:1.2rem;padding:12px;border:1px solid #ccc;border-radius:6px;background:#f7f7f7}
-nav{position:fixed;left:0;right:0;bottom:0;width:100%;display:flex;background:#fff;border-top:1px solid #ccc;padding-bottom:0;z-index:10}
-nav button{flex:1;padding:18px 0;font-size:1rem;border:none;background:transparent;color:#000;cursor:pointer;font-family:inherit}
-nav button.active{font-weight:600;background:#eee}
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  height:100%;
+  background:#ff0000;
+}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  color:#000;
+}
+
+main{
+  padding:20px;
+  padding-bottom:100px;
+}
+
+.page{
+  display:none;
+}
+
+.page.active{
+  display:block;
+}
+
+h1{
+  font-size:1.4rem;
+  margin:0 0 20px;
+}
+
+label{
+  display:block;
+  margin-bottom:6px;
+  font-size:.9rem;
+}
+
+input[type=number]{
+  display:block;
+  width:100%;
+  padding:10px;
+  font-size:1rem;
+  border:1px solid #ccc;
+  border-radius:6px;
+  margin-bottom:16px;
+  background:#fff;
+  color:#000;
+  -webkit-appearance:none;
+  appearance:none;
+}
+
+.result{
+  font-size:1.2rem;
+  padding:12px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  background:#f7f7f7;
+}
+
+nav{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  width:100%;
+  min-height:80px;
+  display:flex;
+  align-items:center;
+  background:#fff;
+  border-top:1px solid #ccc;
+  padding-bottom:0;
+  z-index:10;
+}
+
+nav button{
+  flex:1;
+  height:80px;
+  padding:0;
+  font-size:1rem;
+  border:none;
+  background:transparent;
+  color:#000;
+  cursor:pointer;
+  font-family:inherit;
+}
+
+nav button.active{
+  font-weight:600;
+  background:#eee;
+}
 </style>
 </head>
+
 <body>
+
 <main>
+
 <section id="page-rechner" class="page active">
 <h1>Rechner</h1>
+
 <label for="z1">Zahl 1</label>
 <input type="number" id="z1" inputmode="decimal" value="0">
+
 <label for="z2">Zahl 2</label>
 <input type="number" id="z2" inputmode="decimal" value="0">
-<div class="result" id="ergebnis">Ergebnis: 0</div>
+
+<div class="result" id="ergebnis">
+Ergebnis: 0
+</div>
 </section>
 
 <section id="page-einstellungen" class="page">
 <h1>Einstellungen</h1>
 <p>Dies ist die Einstellungsseite.</p>
 </section>
+
 </main>
 
 <nav>
@@ -46,11 +137,14 @@ nav button.active{font-weight:600;background:#eee}
 </nav>
 
 <script>
-var z1=document.getElementById('z1'),z2=document.getElementById('z2'),erg=document.getElementById('ergebnis');
+var z1=document.getElementById('z1');
+var z2=document.getElementById('z2');
+var erg=document.getElementById('ergebnis');
 
 function calc(){
-var a=parseFloat(z1.value)||0,b=parseFloat(z2.value)||0;
-erg.textContent='Ergebnis: '+(a+b)
+  var a=parseFloat(z1.value)||0;
+  var b=parseFloat(z2.value)||0;
+  erg.textContent='Ergebnis: '+(a+b);
 }
 
 z1.addEventListener('input',calc);
@@ -60,21 +154,25 @@ calc();
 var btns=document.querySelectorAll('nav button');
 
 for(var i=0;i<btns.length;i++){
-btns[i].addEventListener('click',function(){
-var t=this.getAttribute('data-tab');
-var pages=document.querySelectorAll('.page');
+  btns[i].addEventListener('click',function(){
 
-for(var j=0;j<pages.length;j++)
-pages[j].classList.remove('active');
+    var t=this.getAttribute('data-tab');
+    var pages=document.querySelectorAll('.page');
 
-document.getElementById('page-'+t).classList.add('active');
+    for(var j=0;j<pages.length;j++){
+      pages[j].classList.remove('active');
+    }
 
-for(var k=0;k<btns.length;k++)
-btns[k].classList.remove('active');
+    document.getElementById('page-'+t).classList.add('active');
 
-this.classList.add('active');
-})
+    for(var k=0;k<btns.length;k++){
+      btns[k].classList.remove('active');
+    }
+
+    this.classList.add('active');
+  });
 }
 </script>
+
 </body>
 </html>
