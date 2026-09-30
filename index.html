@@ -14,8 +14,8 @@
 <style>
   :root{--bg:#14171b;--surface:#1d2126;--surface-2:#252a30;--border:#2d333b;--text:#e9ebee;--muted:#8b93a1;--accent:#e0a458;--accent-dim:#4a3c28;--danger:#d9635f;--danger-dim:#3a2323;}
   *{box-sizing:border-box;}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent;}
-  #scrollArea{height:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;scrollbar-width:none;-ms-overflow-style:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));}
+  html,body{height:100%;height:100dvh;margin:0;background:var(--surface);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+  #scrollArea{height:100%;height:100dvh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;scrollbar-width:none;-ms-overflow-style:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));}
   #scrollArea::-webkit-scrollbar{display:none;width:0;background:transparent;}
   .wrap{max-width:520px;margin:0 auto;padding:20px 16px 24px;}
   .view{display:none;}
@@ -73,7 +73,7 @@
   .week-row{display:grid;grid-template-columns:1fr 1fr 1.1fr;text-align:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:.88rem;}
   .week-row.head{color:var(--muted);font-size:.72rem;padding-top:0;}
   .week-row:last-of-type{border-bottom:none;}
-  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;background:var(--surface);border-top:1px solid var(--border);padding-bottom:14px;}
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom,0px);}
   .tab{flex:1;background:transparent;border:none;border-radius:0;color:var(--muted);padding:9px 0 7px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.68rem;}
   .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
   .tab.active{color:var(--accent);}
@@ -236,6 +236,7 @@
     });
     list.querySelectorAll('.del-btn').forEach(btn => {
       btn.addEventListener('click', () => {
+        if(!window.confirm('Möchtest du diesen Eintrag wirklich löschen?')) return;
         entries = entries.filter(e => e.date !== btn.dataset.date);
         saveEntries();
         renderAll();
@@ -414,6 +415,7 @@
     showMsg('errorMsg','',true);
     const dateVal = $('dateInput').value, weightVal = $('weightInput').value;
     if(!dateVal){ showMsg('errorMsg','Bitte ein Datum wählen.',true); return; }
+    if(dateVal > todayStr()){ showMsg('errorMsg','Einträge für zukünftige Daten sind nicht möglich.',true); return; }
     if(weightVal === ''){ showMsg('errorMsg','Bitte ein Gewicht eingeben.',true); return; }
     const w = parseFloat(weightVal);
     if(isNaN(w) || w < 20 || w > 400){ showMsg('errorMsg','Bitte ein plausibles Gewicht eingeben (20–400 kg).',true); return; }
