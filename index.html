@@ -14,8 +14,9 @@
 <style>
   :root{--bg:#14171b;--surface:#1d2126;--surface-2:#252a30;--border:#2d333b;--text:#e9ebee;--muted:#8b93a1;--accent:#e0a458;--accent-dim:#4a3c28;--danger:#d9635f;--danger-dim:#3a2323;}
   *{box-sizing:border-box;}
-  html,body{height:100%;height:100dvh;margin:0;background:var(--surface);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent;}
-  #scrollArea{height:100%;height:100dvh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;scrollbar-width:none;-ms-overflow-style:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));}
+  html,body{height:100%;margin:0;background:var(--surface);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+  body{position:fixed;inset:0;}
+  #scrollArea{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;scrollbar-width:none;-ms-overflow-style:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));}
   #scrollArea::-webkit-scrollbar{display:none;width:0;background:transparent;}
   .wrap{max-width:520px;margin:0 auto;padding:20px 16px 24px;}
   .view{display:none;}
