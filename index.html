@@ -236,6 +236,7 @@
     });
     list.querySelectorAll('.del-btn').forEach(btn => {
       btn.addEventListener('click', () => {
+        if(!window.confirm('Möchtest du diesen Eintrag wirklich löschen?')) return;
         entries = entries.filter(e => e.date !== btn.dataset.date);
         saveEntries();
         renderAll();
