@@ -14,10 +14,11 @@
 <style>
   :root{--bg:#14171b;--surface:#1d2126;--surface-2:#252a30;--border:#2d333b;--text:#e9ebee;--muted:#8b93a1;--accent:#e0a458;--accent-dim:#4a3c28;--danger:#d9635f;--danger-dim:#3a2323;}
   *{box-sizing:border-box;}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent;}
-  #scrollArea{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
-  .wrap{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;scrollbar-width:none;-ms-overflow-style:none;max-width:520px;margin:0 auto;width:100%;padding:20px 16px 24px;}
+  html,body{height:100%;margin:0;background:var(--surface);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+  #app{display:flex;flex-direction:column;height:100%;padding-top:env(safe-area-inset-top,0px);}
+  .wrap{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;scrollbar-width:none;-ms-overflow-style:none;}
   .wrap::-webkit-scrollbar{display:none;width:0;background:transparent;}
+  .inner{max-width:520px;margin:0 auto;padding:20px 16px 24px;background:var(--bg);min-height:100%;}
   .view{display:none;}
   .view.active{display:block;}
   h1{font-size:1.4rem;font-weight:650;letter-spacing:-0.01em;margin:4px 0 20px;text-align:center;}
@@ -73,108 +74,112 @@
   .week-row{display:grid;grid-template-columns:1fr 1fr 1.1fr;text-align:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:.88rem;}
   .week-row.head{color:var(--muted);font-size:.72rem;padding-top:0;}
   .week-row:last-of-type{border-bottom:none;}
-  .tabbar{flex-shrink:0;display:flex;background:var(--surface);border-top:1px solid var(--border);}
+  .tabbar{flex-shrink:0;display:flex;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom,0px);}
   .tab{flex:1;background:transparent;border:none;border-radius:0;color:var(--muted);padding:9px 0 7px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.68rem;}
   .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
   .tab.active{color:var(--accent);}
 </style>
 </head>
 <body>
-<div id="scrollArea">
-<div class="wrap">
+<div id="app">
 
-<section class="view active" id="view-weight">
-  <h1>Gewichtstracker</h1>
-  <p class="greeting" id="greeting"></p>
+  <div class="wrap" id="scrollArea">
+    <div class="inner">
 
-  <div class="card">
-    <p class="current-label">Aktuelles Gewicht</p>
-    <div class="current-value" id="currentValue">– <span>kg</span></div>
-    <p class="current-date" id="currentDate">Noch kein Eintrag</p>
-  </div>
+      <section class="view active" id="view-weight">
+        <h1>Gewichtstracker</h1>
+        <p class="greeting" id="greeting"></p>
 
-  <div class="card">
-    <p class="card-title">Eintrag hinzufügen</p>
-    <div class="field">
-      <label for="dateInput">Datum</label>
-      <input type="date" id="dateInput">
+        <div class="card">
+          <p class="current-label">Aktuelles Gewicht</p>
+          <div class="current-value" id="currentValue">– <span>kg</span></div>
+          <p class="current-date" id="currentDate">Noch kein Eintrag</p>
+        </div>
+
+        <div class="card">
+          <p class="card-title">Eintrag hinzufügen</p>
+          <div class="field">
+            <label for="dateInput">Datum</label>
+            <input type="date" id="dateInput">
+          </div>
+          <div class="field">
+            <label for="weightInput">Gewicht (kg)</label>
+            <input type="number" id="weightInput" step="0.1" placeholder="z. B. 78.4" inputmode="decimal">
+          </div>
+          <button class="btn-primary" id="saveBtn">Speichern</button>
+          <p class="error" id="errorMsg"></p>
+        </div>
+
+        <div class="card">
+          <p class="card-title">Verlauf</p>
+          <div class="filters" id="filters">
+            <button data-range="7" class="active">7 Tage</button>
+            <button data-range="14">14 Tage</button>
+            <button data-range="30">30 Tage</button>
+            <button data-range="365">365 Tage</button>
+          </div>
+          <div class="chart-box"><canvas id="chart"></canvas></div>
+          <p class="empty" id="chartEmpty" style="display:none;">Noch keine Daten für diesen Zeitraum.</p>
+        </div>
+
+        <div class="card">
+          <p class="card-title">Historie</p>
+          <div id="historyList"></div>
+          <p class="empty" id="histEmpty" style="display:none;">Noch keine Einträge vorhanden.</p>
+        </div>
+      </section>
+
+      <section class="view" id="view-stats">
+        <h1>Statistik</h1>
+        <div class="card">
+          <p class="card-title">Ziel</p>
+          <div id="goalBox"></div>
+        </div>
+        <div class="card">
+          <p class="card-title">Kennzahlen</p>
+          <div class="tiles" id="tiles"></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <p class="card-title">Wochendurchschnitt</p>
+            <select id="yearSelect" class="year-select" aria-label="Jahr"></select>
+          </div>
+          <div id="weeksBox"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-settings">
+        <h1>Einstellungen</h1>
+        <div class="card">
+          <p class="card-title">Profil</p>
+          <div class="field"><label for="setName">Name</label><input type="text" id="setName" maxlength="30" autocomplete="off"></div>
+          <div class="field"><label for="setHeight">Körpergröße (cm)</label><input type="number" id="setHeight" step="1" inputmode="numeric"></div>
+          <div class="field"><label for="setGoal">Zielgewicht (kg)</label><input type="number" id="setGoal" step="0.1" inputmode="decimal"></div>
+          <button class="btn-primary" id="saveSettingsBtn">Speichern</button>
+          <p class="error" id="setMsg"></p>
+        </div>
+        <div class="card">
+          <p class="card-title">Backup</p>
+          <button class="btn-secondary" id="exportBtn">Daten exportieren</button>
+          <button class="btn-secondary" id="importBtn" style="margin-top:10px;">Backup importieren</button>
+          <input type="file" id="importFile" accept="application/json" style="display:none;">
+          <p class="hint">Export speichert alle Daten der App als Datei, Import liest sie wieder ein.</p>
+          <p class="error" id="backupMsg"></p>
+        </div>
+        <div class="card danger-zone">
+          <button class="btn-danger" id="clearAllBtn">Alle Daten löschen</button>
+        </div>
+      </section>
+
     </div>
-    <div class="field">
-      <label for="weightInput">Gewicht (kg)</label>
-      <input type="number" id="weightInput" step="0.1" placeholder="z. B. 78.4" inputmode="decimal">
-    </div>
-    <button class="btn-primary" id="saveBtn">Speichern</button>
-    <p class="error" id="errorMsg"></p>
   </div>
 
-  <div class="card">
-    <p class="card-title">Verlauf</p>
-    <div class="filters" id="filters">
-      <button data-range="7" class="active">7 Tage</button>
-      <button data-range="14">14 Tage</button>
-      <button data-range="30">30 Tage</button>
-      <button data-range="365">365 Tage</button>
-    </div>
-    <div class="chart-box"><canvas id="chart"></canvas></div>
-    <p class="empty" id="chartEmpty" style="display:none;">Noch keine Daten für diesen Zeitraum.</p>
-  </div>
+  <nav class="tabbar" id="tabbar">
+    <button class="tab active" data-tab="weight"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M8 10a4 4 0 0 1 8 0"/><path d="M12 10l2-2"/></svg>Gewicht</button>
+    <button class="tab" data-tab="stats"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Statistik</button>
+    <button class="tab" data-tab="settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Einstellungen</button>
+  </nav>
 
-  <div class="card">
-    <p class="card-title">Historie</p>
-    <div id="historyList"></div>
-    <p class="empty" id="histEmpty" style="display:none;">Noch keine Einträge vorhanden.</p>
-  </div>
-</section>
-
-<section class="view" id="view-stats">
-  <h1>Statistik</h1>
-  <div class="card">
-    <p class="card-title">Ziel</p>
-    <div id="goalBox"></div>
-  </div>
-  <div class="card">
-    <p class="card-title">Kennzahlen</p>
-    <div class="tiles" id="tiles"></div>
-  </div>
-  <div class="card">
-    <div class="card-head">
-      <p class="card-title">Wochendurchschnitt</p>
-      <select id="yearSelect" class="year-select" aria-label="Jahr"></select>
-    </div>
-    <div id="weeksBox"></div>
-  </div>
-</section>
-
-<section class="view" id="view-settings">
-  <h1>Einstellungen</h1>
-  <div class="card">
-    <p class="card-title">Profil</p>
-    <div class="field"><label for="setName">Name</label><input type="text" id="setName" maxlength="30" autocomplete="off"></div>
-    <div class="field"><label for="setHeight">Körpergröße (cm)</label><input type="number" id="setHeight" step="1" inputmode="numeric"></div>
-    <div class="field"><label for="setGoal">Zielgewicht (kg)</label><input type="number" id="setGoal" step="0.1" inputmode="decimal"></div>
-    <button class="btn-primary" id="saveSettingsBtn">Speichern</button>
-    <p class="error" id="setMsg"></p>
-  </div>
-  <div class="card">
-    <p class="card-title">Backup</p>
-    <button class="btn-secondary" id="exportBtn">Daten exportieren</button>
-    <button class="btn-secondary" id="importBtn" style="margin-top:10px;">Backup importieren</button>
-    <input type="file" id="importFile" accept="application/json" style="display:none;">
-    <p class="hint">Export speichert alle Daten der App als Datei, Import liest sie wieder ein.</p>
-    <p class="error" id="backupMsg"></p>
-  </div>
-  <div class="card danger-zone">
-    <button class="btn-danger" id="clearAllBtn">Alle Daten löschen</button>
-  </div>
-</section>
-
-</div>
-
-<nav class="tabbar" id="tabbar">
-  <button class="tab active" data-tab="weight"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M8 10a4 4 0 0 1 8 0"/><path d="M12 10l2-2"/></svg>Gewicht</button>
-  <button class="tab" data-tab="stats"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Statistik</button>
-  <button class="tab" data-tab="settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Einstellungen</button>
-</nav>
 </div>
 
 <script>
@@ -387,7 +392,7 @@
       $('view-' + t).classList.toggle('active', t === tab);
       document.querySelector('.tab[data-tab="' + t + '"]').classList.toggle('active', t === tab);
     });
-    document.querySelector('.wrap').scrollTop = 0;
+    $('scrollArea').scrollTop = 0;
     if(tab === 'weight') renderChart();
     if(tab === 'stats') renderStats();
   }
