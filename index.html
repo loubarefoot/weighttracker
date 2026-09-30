@@ -9,8 +9,8 @@
 <title>App</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;height:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;background:#fff;color:#000}
+html,body{margin:0;padding:0;height:100%;background:#ff0000}
+body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;color:#000}
 main{padding:20px;padding-bottom:calc(80px + env(safe-area-inset-bottom))}
 .page{display:none}
 .page.active{display:block}
@@ -33,28 +33,48 @@ nav button.active{font-weight:600;background:#eee}
 <input type="number" id="z2" inputmode="decimal" value="0">
 <div class="result" id="ergebnis">Ergebnis: 0</div>
 </section>
+
 <section id="page-einstellungen" class="page">
 <h1>Einstellungen</h1>
 <p>Dies ist die Einstellungsseite.</p>
 </section>
 </main>
+
 <nav>
 <button class="active" data-tab="rechner">Rechner</button>
 <button data-tab="einstellungen">Einstellungen</button>
 </nav>
+
 <script>
 var z1=document.getElementById('z1'),z2=document.getElementById('z2'),erg=document.getElementById('ergebnis');
-function calc(){var a=parseFloat(z1.value)||0,b=parseFloat(z2.value)||0;erg.textContent='Ergebnis: '+(a+b)}
-z1.addEventListener('input',calc);z2.addEventListener('input',calc);calc();
+
+function calc(){
+var a=parseFloat(z1.value)||0,b=parseFloat(z2.value)||0;
+erg.textContent='Ergebnis: '+(a+b)
+}
+
+z1.addEventListener('input',calc);
+z2.addEventListener('input',calc);
+calc();
+
 var btns=document.querySelectorAll('nav button');
-for(var i=0;i<btns.length;i++){btns[i].addEventListener('click',function(){
+
+for(var i=0;i<btns.length;i++){
+btns[i].addEventListener('click',function(){
 var t=this.getAttribute('data-tab');
 var pages=document.querySelectorAll('.page');
-for(var j=0;j<pages.length;j++)pages[j].classList.remove('active');
+
+for(var j=0;j<pages.length;j++)
+pages[j].classList.remove('active');
+
 document.getElementById('page-'+t).classList.add('active');
-for(var k=0;k<btns.length;k++)btns[k].classList.remove('active');
+
+for(var k=0;k<btns.length;k++)
+btns[k].classList.remove('active');
+
 this.classList.add('active');
-})}
+})
+}
 </script>
 </body>
 </html>
